@@ -266,6 +266,7 @@ public class Dungeon {
 
 		gold = 0;
 		energy = 0;
+		Cheats.reset();
 
 		droppedItems = new SparseArray<>();
 
@@ -639,6 +640,7 @@ public class Dungeon {
 			bundle.put( BRANCH, branch );
 
 			bundle.put( GOLD, gold );
+			Cheats.storeInBundle( bundle );
 			bundle.put( ENERGY, energy );
 
 			for (int d : droppedItems.keyArray()) {
@@ -816,6 +818,7 @@ public class Dungeon {
 		branch = bundle.getInt( BRANCH );
 
 		gold = bundle.getInt( GOLD );
+		Cheats.restoreFromBundle( bundle );
 		energy = bundle.getInt( ENERGY );
 
 		Statistics.restoreFromBundle( bundle );

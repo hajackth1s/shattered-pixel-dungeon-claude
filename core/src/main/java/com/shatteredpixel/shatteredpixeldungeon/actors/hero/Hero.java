@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Cheats;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
@@ -1626,6 +1627,10 @@ public class Hero extends Char {
 
 	@Override
 	public void damage( int dmg, Object src ) {
+		//Cheat-Mod: God Mode ignoriert jeglichen Schaden
+		if (Cheats.godModeActive(this)) {
+			return;
+		}
 		if (buff(TimekeepersHourglass.timeStasis.class) != null
 				|| buff(TimeStasis.class) != null) {
 			return;
@@ -2169,6 +2174,12 @@ public class Hero extends Char {
 
 	@Override
 	public void die( Object cause ) {
+
+		//Cheat-Mod: im God Mode kann der Held nicht sterben
+		if (Cheats.godModeActive(this)) {
+			HP = HT;
+			return;
+		}
 		
 		curAction = null;
 
