@@ -30,6 +30,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfMi
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfToxicEssence;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.ExoticPotion;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
@@ -42,53 +44,70 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-//Cheat-Mod: Liste aller Tränke, Elixiere und Gebräue
-public class WndPotions extends Window {
+//Cheat-Mod: Liste aller Tränke/Elixiere/Gebräue bzw. aller Schriftrollen
+public class WndCheatItems extends Window {
 
 	private static final int WIDTH  = 120;
 	private static final int HEIGHT = 180;
 
 	@SuppressWarnings("unchecked")
-	private static final List<Class<? extends Potion>> ELIXIRS = Arrays.asList(
+	private static final List<Class<? extends Item>> ELIXIRS = Arrays.asList(
 			ElixirOfHoneyedHealing.class, ElixirOfAquaticRejuvenation.class,
 			ElixirOfMight.class, ElixirOfDragonsBlood.class, ElixirOfIcyTouch.class,
 			ElixirOfToxicEssence.class, ElixirOfArcaneArmor.class, ElixirOfFeatherFall.class );
 
 	@SuppressWarnings("unchecked")
-	private static final List<Class<? extends Potion>> BREWS = Arrays.asList(
+	private static final List<Class<? extends Item>> BREWS = Arrays.asList(
 			UnstableBrew.class, CausticBrew.class, BlizzardBrew.class,
 			ShockingBrew.class, InfernalBrew.class, AquaBrew.class );
 
-	public WndPotions() {
+	private final ScrollingListPane list;
+
+	private WndCheatItems() {
 		super();
-
-		ScrollingListPane list = new ScrollingListPane();
+		list = new ScrollingListPane();
 		add( list );
+	}
 
-		ArrayList<Class<? extends Potion>> regular = new ArrayList<>();
-		for (Class<?> c : Generator.Category.POTION.classes){
-			regular.add( c.asSubclass(Potion.class) );
-		}
+	public static WndCheatItems potions(){
+		WndCheatItems w = new WndCheatItems();
+		w.addSection( "regular", classes( Generator.Category.POTION.classes ) );
+		w.addSection( "exotic", new ArrayList<>(ExoticPotion.regToExo.values()) );
+		w.addSection( "elixirs", ELIXIRS );
+		w.addSection( "brews", BREWS );
+		w.finish();
+		return w;
+	}
 
-		addSection( list, "regular", regular );
-		addSection( list, "exotic", new ArrayList<>(ExoticPotion.regToExo.values()) );
-		addSection( list, "elixirs", ELIXIRS );
-		addSection( list, "brews", BREWS );
+	public static WndCheatItems scrolls(){
+		WndCheatItems w = new WndCheatItems();
+		w.addSection( "scrolls", classes( Generator.Category.SCROLL.classes ) );
+		w.addSection( "exotic_scrolls", new ArrayList<>(ExoticScroll.regToExo.values()) );
+		w.finish();
+		return w;
+	}
 
+	private static ArrayList<Class<? extends Item>> classes( Class<?>[] arr ){
+		ArrayList<Class<? extends Item>> result = new ArrayList<>();
+		for (Class<?> c : arr) result.add( c.asSubclass(Item.class) );
+		return result;
+	}
+
+	private void finish(){
 		resize( WIDTH, Math.min( HEIGHT, (int)list.content().height() ) );
 		list.setRect( 0, 0, width, height );
 	}
 
-	private void addSection( ScrollingListPane list, String titleKey, List<? extends Class<? extends Potion>> classes ){
+	private void addSection( String titleKey, List<? extends Class<? extends Item>> classes ){
 		list.addTitle( Messages.get(this, titleKey) );
-		for (Class<? extends Potion> cls : classes){
-			Potion display = displayPotion( cls );
+		for (Class<? extends Item> cls : classes){
+			Item display = displayItem( cls );
 			ScrollingListPane.ListItem item = new ScrollingListPane.ListItem(
 					new ItemSprite( display ), Messages.titleCase( display.name() ) ){
 				@Override
 				public boolean onClick( float x, float y ) {
 					if (inside( x, y )) {
-						ShatteredPixelDungeon.scene().addToFront( new WndPotionInfo( WndPotions.this, cls ) );
+						ShatteredPixelDungeon.scene().addToFront( new WndItemInfo( WndCheatItems.this, cls ) );
 						return true;
 					}
 					return false;
@@ -98,49 +117,50 @@ public class WndPotions extends Window {
 		}
 	}
 
-	//anonymer Trank zur Anzeige: zeigt Name & Beschreibung, ohne den Trank im Spiel zu identifizieren
-	private static Potion displayPotion( Class<? extends Potion> cls ){
-		Potion colored = Reflection.newInstance( cls );
-		Potion display = Reflection.newInstance( cls );
-		display.anonymize();
+	//anonymes Item zur Anzeige: zeigt Name & Beschreibung, ohne die Sorte im Spiel zu identifizieren
+	private static Item displayItem( Class<? extends Item> cls ){
+		Item colored = Reflection.newInstance( cls );
+		Item display = Reflection.newInstance( cls );
+		if (display instanceof Potion) ((Potion) display).anonymize();
+		if (display instanceof Scroll) ((Scroll) display).anonymize();
 		display.image = colored.image;
 		return display;
 	}
 
-	//gibt dem Helden den Trank und führt sofort dessen Standard-Aktion aus (trinken / werfen)
-	private static void activate( Class<? extends Potion> cls ){
+	//gibt dem Helden das Item und führt sofort dessen Standard-Aktion aus (trinken / werfen / lesen)
+	private static void activate( Class<? extends Item> cls ){
 		Hero hero = Dungeon.hero;
-		Potion potion = giveToHero( cls );
-		if (potion == null) return;
+		Item item = giveToHero( cls );
+		if (item == null) return;
 
 		Item stack = hero.belongings.getItem( cls );
-		if (stack == null) stack = potion;
+		if (stack == null) stack = item;
 		stack.execute( hero, stack.defaultAction() );
 		Item.updateQuickslot();
 	}
 
-	private static Potion giveToHero( Class<? extends Potion> cls ){
-		Potion potion = Reflection.newInstance( cls );
+	private static Item giveToHero( Class<? extends Item> cls ){
+		Item potion = Reflection.newInstance( cls );
 		potion.identify();
 		if (!potion.collect()){
-			GLog.w( Messages.get(WndPotions.class, "full") );
+			GLog.w( Messages.get(WndCheatItems.class, "full") );
 			return null;
 		}
 		Item.updateQuickslot();
 		return potion;
 	}
 
-	public static class WndPotionInfo extends WndInfoItem {
+	public static class WndItemInfo extends WndInfoItem {
 
 		private static final int BTN_HEIGHT = 18;
 		private static final int GAP = 2;
 
-		public WndPotionInfo( Window owner, Class<? extends Potion> cls ){
-			super( displayPotion( cls ) );
+		public WndItemInfo( Window owner, Class<? extends Item> cls ){
+			super( displayItem( cls ) );
 
 			float y = height + GAP;
 
-			RedButton use = new RedButton( Messages.get(WndPotions.class, "use"), 8 ){
+			RedButton use = new RedButton( Messages.get(WndCheatItems.class, "use"), 8 ){
 				@Override
 				protected void onClick() {
 					hide();
@@ -152,11 +172,11 @@ public class WndPotions extends Window {
 			add( use );
 			use.setRect( 0, y, (width - GAP) / 2f, BTN_HEIGHT );
 
-			RedButton give = new RedButton( Messages.get(WndPotions.class, "give"), 8 ){
+			RedButton give = new RedButton( Messages.get(WndCheatItems.class, "give"), 8 ){
 				@Override
 				protected void onClick() {
 					if (giveToHero( cls ) != null){
-						GLog.p( Messages.get(WndPotions.class, "given", Messages.titleCase(displayPotion(cls).name())) );
+						GLog.p( Messages.get(WndCheatItems.class, "given", Messages.titleCase(displayItem(cls).name())) );
 					}
 				}
 			};

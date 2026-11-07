@@ -14,7 +14,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -89,14 +88,6 @@ public class Cheats {
 			if (!i.isIdentified()) i.identify();
 		}
 		Item.updateQuickslot();
-	}
-
-	public static void giveUpgrades( int amount ){
-		Item scroll = new ScrollOfUpgrade().quantity( amount );
-		scroll.identify();
-		if (!scroll.collect()){
-			Dungeon.level.drop( scroll, Dungeon.hero.pos ).sprite.drop();
-		}
 	}
 
 	//öffnet alle verschlossenen Türen, Kristalltüren, verschlossene Ausgänge

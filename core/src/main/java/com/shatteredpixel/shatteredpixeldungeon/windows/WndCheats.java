@@ -75,23 +75,28 @@ public class WndCheats extends Window {
 			@Override
 			protected void onClick() {
 				hide();
-				GameScene.show( new WndPotions() );
+				GameScene.show( WndCheatItems.potions() );
 			}
 		};
 		potions.textColor( TITLE_COLOR );
-		place( potions );
+		RedButton scrolls = new RedButton( Messages.get(this, "scrolls"), 8 ) {
+			@Override
+			protected void onClick() {
+				hide();
+				GameScene.show( WndCheatItems.scrolls() );
+			}
+		};
+		scrolls.textColor( TITLE_COLOR );
+		addButtons( potions, scrolls );
 
 		addButtons(
-				button( "str_1",  () -> Cheats.addStrength(1) ),
-				button( "str_5",  () -> Cheats.addStrength(5) ) );
-		addButtons(
-				button( "gold",   () -> Cheats.addGold(9999) ),
+				button( "gold",   () -> Cheats.addGold(999) ),
 				button( "energy", () -> Cheats.addEnergy(999) ) );
 		addButtons(
-				button( "heal",   Cheats::fullHeal ),
-				button( "level",  Cheats::levelUp ) );
+				button( "str_10", () -> Cheats.addStrength(10) ),
+				button( "heal",   Cheats::fullHeal ) );
 		addButtons(
-				button( "upgrades", () -> Cheats.giveUpgrades(10) ),
+				button( "level",  Cheats::levelUp ),
 				button( "identify", Cheats::identifyAll ) );
 		addButtons(
 				button( "map", Cheats::revealMap ),
