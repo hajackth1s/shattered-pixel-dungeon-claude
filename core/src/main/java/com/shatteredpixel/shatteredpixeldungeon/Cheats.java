@@ -25,19 +25,24 @@ public class Cheats {
 
 	//wird mit dem Spielstand gespeichert
 	public static boolean godMode = false;
+	public static boolean alwaysHit = false;
 
-	private static final String GOD_MODE = "cheat_god_mode";
+	private static final String GOD_MODE   = "cheat_god_mode";
+	private static final String ALWAYS_HIT = "cheat_always_hit";
 
 	public static void reset(){
 		godMode = false;
+		alwaysHit = false;
 	}
 
 	public static void storeInBundle( Bundle bundle ){
 		bundle.put( GOD_MODE, godMode );
+		bundle.put( ALWAYS_HIT, alwaysHit );
 	}
 
 	public static void restoreFromBundle( Bundle bundle ){
 		godMode = bundle.contains( GOD_MODE ) && bundle.getBoolean( GOD_MODE );
+		alwaysHit = bundle.contains( ALWAYS_HIT ) && bundle.getBoolean( ALWAYS_HIT );
 	}
 
 	public static boolean godModeActive( Hero hero ){

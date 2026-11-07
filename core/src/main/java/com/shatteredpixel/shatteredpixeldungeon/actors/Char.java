@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Cheats;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.StormCloud;
@@ -631,6 +632,12 @@ public abstract class Char extends Actor {
 
 		if (defender.buff(MonkEnergy.MonkAbility.Focus.FocusBuff.class) != null){
 			defStat = INFINITE_EVASION;
+		}
+
+		//Cheat-Mod: Angriffe des Helden treffen immer (auch gegen Ausweich-Effekte)
+		if (attacker == Dungeon.hero && Cheats.alwaysHit){
+			acuStat = INFINITE_ACCURACY;
+			defStat = 0;
 		}
 
 		//if accuracy or evasion are large enough, treat them as infinite.

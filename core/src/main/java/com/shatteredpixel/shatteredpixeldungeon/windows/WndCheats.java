@@ -49,6 +49,17 @@ public class WndCheats extends Window {
 		god.checked( Cheats.godMode );
 		place( god );
 
+		CheckBox hit = new CheckBox( Messages.get(this, "always_hit") ) {
+			@Override
+			protected void onClick() {
+				super.onClick();
+				Cheats.alwaysHit = checked();
+				GLog.p( Messages.get(WndCheats.class, checked() ? "hit_on" : "hit_off") );
+			}
+		};
+		hit.checked( Cheats.alwaysHit );
+		place( hit );
+
 		addButtons(
 				button( "str_1",  () -> Cheats.addStrength(1) ),
 				button( "str_5",  () -> Cheats.addStrength(5) ) );
