@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Cheats;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
@@ -62,6 +63,17 @@ public class Hunger extends Buff implements Hero.Doom {
 
 	@Override
 	public boolean act() {
+
+		//Cheat-Mod: nie hungrig
+		if (Cheats.noHunger){
+			if (level > 0 || partialDamage > 0){
+				level = 0;
+				partialDamage = 0;
+				BuffIndicator.refreshHero();
+			}
+			spend(TICK);
+			return true;
+		}
 
 		if (Dungeon.level.locked
 				|| target.buff(WellFed.class) != null

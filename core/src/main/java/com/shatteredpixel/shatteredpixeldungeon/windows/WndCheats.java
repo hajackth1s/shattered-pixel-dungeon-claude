@@ -60,6 +60,27 @@ public class WndCheats extends Window {
 		hit.checked( Cheats.alwaysHit );
 		place( hit );
 
+		CheckBox food = new CheckBox( Messages.get(this, "no_hunger") ) {
+			@Override
+			protected void onClick() {
+				super.onClick();
+				Cheats.noHunger = checked();
+				GLog.p( Messages.get(WndCheats.class, checked() ? "hunger_on" : "hunger_off") );
+			}
+		};
+		food.checked( Cheats.noHunger );
+		place( food );
+
+		RedButton potions = new RedButton( Messages.get(this, "potions"), 8 ) {
+			@Override
+			protected void onClick() {
+				hide();
+				GameScene.show( new WndPotions() );
+			}
+		};
+		potions.textColor( TITLE_COLOR );
+		place( potions );
+
 		addButtons(
 				button( "str_1",  () -> Cheats.addStrength(1) ),
 				button( "str_5",  () -> Cheats.addStrength(5) ) );
@@ -72,7 +93,9 @@ public class WndCheats extends Window {
 		addButtons(
 				button( "upgrades", () -> Cheats.giveUpgrades(10) ),
 				button( "identify", Cheats::identifyAll ) );
-		place( button( "map", Cheats::revealMap ) );
+		addButtons(
+				button( "map", Cheats::revealMap ),
+				button( "unlock", Cheats::unlockAll ) );
 
 		resize( WIDTH, (int)pos );
 	}

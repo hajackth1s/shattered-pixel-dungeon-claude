@@ -11,9 +11,11 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.utils.Bundle;
@@ -26,23 +28,28 @@ public class Cheats {
 	//wird mit dem Spielstand gespeichert
 	public static boolean godMode = false;
 	public static boolean alwaysHit = false;
+	public static boolean noHunger = false;
 
 	private static final String GOD_MODE   = "cheat_god_mode";
 	private static final String ALWAYS_HIT = "cheat_always_hit";
+	private static final String NO_HUNGER  = "cheat_no_hunger";
 
 	public static void reset(){
 		godMode = false;
 		alwaysHit = false;
+		noHunger = false;
 	}
 
 	public static void storeInBundle( Bundle bundle ){
 		bundle.put( GOD_MODE, godMode );
 		bundle.put( ALWAYS_HIT, alwaysHit );
+		bundle.put( NO_HUNGER, noHunger );
 	}
 
 	public static void restoreFromBundle( Bundle bundle ){
 		godMode = bundle.contains( GOD_MODE ) && bundle.getBoolean( GOD_MODE );
 		alwaysHit = bundle.contains( ALWAYS_HIT ) && bundle.getBoolean( ALWAYS_HIT );
+		noHunger = bundle.contains( NO_HUNGER ) && bundle.getBoolean( NO_HUNGER );
 	}
 
 	public static boolean godModeActive( Hero hero ){
@@ -90,6 +97,36 @@ public class Cheats {
 		if (!scroll.collect()){
 			Dungeon.level.drop( scroll, Dungeon.hero.pos ).sprite.drop();
 		}
+	}
+
+	//öffnet alle verschlossenen Türen, Kristalltüren, verschlossene Ausgänge
+	//und verschlossene Truhen/Kristalltruhen auf der aktuellen Ebene
+	public static void unlockAll(){
+		Level level = Dungeon.level;
+		for (int i = 0; i < level.length(); i++){
+			int terr = level.map[i];
+			int newTerr = -1;
+			if (terr == Terrain.LOCKED_DOOR || terr == Terrain.HERO_LKD_DR){
+				newTerr = Terrain.DOOR;
+			} else if (terr == Terrain.CRYSTAL_DOOR){
+				newTerr = Terrain.EMPTY;
+			} else if (terr == Terrain.LOCKED_EXIT){
+				newTerr = Terrain.UNLOCKED_EXIT;
+			}
+			if (newTerr != -1){
+				Level.set( i, newTerr );
+				GameScene.updateMap( i );
+			}
+		}
+		for (Heap heap : level.heaps.valueList()){
+			if (heap.type == Heap.Type.LOCKED_CHEST || heap.type == Heap.Type.CRYSTAL_CHEST){
+				heap.type = Heap.Type.CHEST;
+				if (heap.sprite != null) heap.sprite.view( heap ).place( heap.pos );
+			}
+		}
+		GameScene.updateKeyDisplay();
+		Dungeon.observe();
+		GameScene.updateFog();
 	}
 
 	public static void revealMap(){
